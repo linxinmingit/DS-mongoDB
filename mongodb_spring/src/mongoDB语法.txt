@@ -1,0 +1,300 @@
+sql                  mongodb            说明
+database        database             数据库
+table	      conllection         数据库表/集合
+row	      document           数据记录行/文档
+column	      field	                数据字段/域
+index	      index	                索引
+table                joins	                表连接,MongoDB不支持
+primary key   primary key       主键,MongoDB自动将_id字段设置为主键
+
+启动 MongoDB: ./mongod --dbpath=../data --logpath=../logs/mongdb.log --logappend&
+连接 MongoDB: ./mongod
+数据库:
+创建数据库: use runoob ['runoob' 是数据库名] (如果数据库不存在，则创建数据库，否则切换到指定数据库)
+数据中插入值: db.runoob.insert({"name":"菜鸟教程"}) [默认的数据库为 test, 如果你没有创建新的数据库, 值将存放在 test 数据库中]
+查询所有数据库: show dbs (3.2版本后 创建的数据库中没有数据不会显示出来,但是有这个数据库)
+删除数据库: db.dropDatabase() [需进入要删除的数据库中,执行命令,删除数据库]
+查看当前使用的数据库: db
+
+集合:
+创建集合: db.createCollection(name, options) [name: 集合名,options:可选参数(详参:菜鸟教程)] -- eg: db.createCollection("runoob")
+注意: 在 MongoDB 中, 你不需要创建集合. 当你插入一些文档时, MongoDB 会自动创建集合
+删除集合: db.site.drop() [site: 集合名]
+查询所有集合: show tables / show collections (需要进入数据库后才能查看,默认test数据库)
+
+文档: 在某数据库中插入json值, 生成的叫文档(文档的数据结构和JSON基本一样)
+插入文档:
+db.coll.insert/db.coll.save({"name":"zxy","age":18,"desc":"文档测试"}) [coll:文档名,如果使用的数据中没有此集合,那么会自动创建并插入值]
+向指定集合中插入一条文档数据:    db.collection.insertOne()
+1) var document = db.collection.insertOne({"a": 3})
+2) 执行 document
+向指定集合中插入多条文档数据:    db.collection.insertMany()
+1) var docu = db.collection.insertMany([{"b": 3}, {'c': 4}])
+2) 执行 docu
+注意: save 不指定_id字段类似insert,指定_id就会更新_id的数据
+查询文档: 
+db.coll.find() [如果查询不出现值,那么代表此集合中没有值] -- 查询集合中所有文档
+db.coll.findOne(); -- 只查询一个(只返回一个文档)
+db.colaaa.find({$or:[{"name":"aaaa"},{"name": "MongoDB1"}]}).pretty() -- or 查询
+AND 和 OR 联合使用: 
+db.colaaa.find({"age": {$gt:12}, $or: [{"name": "aaaa"},{"name": "MongoDB1"}]}).pretty() -- age要大于12 并且name
+要等于'aaaa'或'MongoDB1' --$gt(大于), $lt(小于), $gte(大于等于), $lte(小于等于)
+查询文档格式化: 
+db.coll.find().pretty()
+操作符: $type
+db.colaaa.find({"name":{$type:'double'}}) -- 查询出name值是 数字类型的 [详参:菜鸟教程]
+查询指定文档中指定字段:
+ db.colaaa.find({}, {"age":1}) -- 查询文档中所有age属性 [后面的1必须加,但数字可随意更改(暂没弄清楚是干啥的)]
+定义变量插入文档: docu=({aa:"123",bb:888})      db.coll.insert(docu)
+修改文档:
+修改文档(修改一条值): 
+db.coll.update({'name':'zxy'},{$set:{'title':'MongoDB'}}) -- 将set后的值插入
+db.coll.update({'name':'zxy'},{$set:{'name':'MongoDB'}}) -- 将name值修改
+db.col.update( { "count" : { $gt : 1 } } , { $set : { "test2" : "OK"} } ); -- 要修改的值不存在就会变为 '添加'
+db.col.update( { "count" : { $gt : 10 } } , { $inc : { "count" : 1} },false,false );
+注意: count值必须是数字,否则不能比较 [gt:大于]
+修改文档(修改所有符合条件的值):
+db.coll.update({name':'zxy'},{$set:{'name':'MongoDB'}},{multi:true})
+db.col.update( { "count" : { $gt : 3 } } , { $set : { "test2" : "OK"} },false,true );
+db.col.update( { "count" : { $gt : 15 } } , { $inc : { "count" : 1} },false,true );
+根据_id修改
+db.coll.save({"_id" : ObjectId("5b7134ecc767e91a57d7c85f"),"bbbb":"aaaaaa","eeeee":14551444})
+删除文档: 
+remove()过时:(可以使用)
+db.col.remove({'name':'zxy'}) -- 删除'name'为'zxy'的文档
+db.aaa.remove({'aa':123},1) -- 删除第一条文档(条件在有多条文档成立的情况下)
+db.aaa.remove({}) -- 删除所有数据
+官方推荐:
+db.aa.deleteMany({}) -- 删除集合下全部文档
+db.aaa.deleteMany({"age":18}) -- 删除 age 等于 18 的全部文档
+db.aaa.deleteOne({"aa":123}) -- 删除 aa 等于 123 的一个文档
+Limit与Skip方法(分页)
+db.colaaa.find({xx:xx}).limit(5).skip(5) [xx:条件, limit:显示多少记录, skip:从第几条开始显示(跳过几条信息)]
+排序: 1:升序  , -1:降序
+db.colaaa.find({}).sort({"age":-1})
+索引:提高查询的效率
+db.col.createIndex({"title":1}) -- 创建索引
+聚合: aggregate()
+  插入集合:
+    db.test.insert({name:"aa",age:16})  
+  集合中总数:
+    { "_id" : ObjectId("5b74e5e34471e5fb7e3b3257"), "name" : "ac", "age" : 18 }
+    { "_id" : ObjectId("5b74e5e84471e5fb7e3b3258"), "name" : "ab", "age" : 17 }
+    { "_id" : ObjectId("5b74e5ed4471e5fb7e3b3259"), "name" : "aa", "age" : 16 }
+    { "_id" : ObjectId("5b74e7514471e5fb7e3b325a"), "name" : "aa", "age" : 16 }
+    { "_id" : ObjectId("5b74e7694471e5fb7e3b325b"), "name" : "aa", "age" : 16 }
+    { "_id" : ObjectId("5b74e76a4471e5fb7e3b325c"), "name" : "aa", "age" : 16 }
+  使用聚合:
+  db.test.aggregate([{$group:{_id:"$age",条数:{$sum:1}}}]) -- 类似 SQL语句: select age ,count(*) from test group by age
+  -- $group: 分组(必须分组才能使用), $age: age属性(集合中没有则计算总条数), 条数: 类似别名可随意命名, $sum:总数量(内置算术操作符)
+  结果:
+    { "_id" : 16, "条数" : 4 }
+    { "_id" : 17, "条数" : 1 }
+    { "_id" : 18, "条数" : 1 }
+MongoDB监控 ----------------------?????????
+Node.js -- 是JavaScript的运行环境
+mongoDB数据关系
+一对多:(嵌入式)
+学习网址: https://blog.csdn.net/why_2012_gogo/article/details/52704012
+db.person.insert({"name":"zxy","age":18,"sex":"女"}); -- 创建用户表,并添加数据
+{
+    "_id" : ObjectId("5b751b83a802d62b60ebcb1f"),
+    "name" : "zxy",
+    "age" : 18.0,
+    "sex" : "女",
+}
+
+db.addrs.insert({"addr":"广州","addr":"深圳","des":"一对多"}); -- 创建地址表,并添加数据
+{
+    "_id" : ObjectId("5b751a2fa802d62b60ebcb1e"),
+    "addr" : "广州",
+    "city" : "深圳",
+    "des" : "一对一"
+}
+db.person.update({'addrs':{$exists:false}},{$set:{'addrs':[{"_id" : ObjectId("5b751a2fa802d62b60ebcb1e"),"addr" : "广州","city" : "深圳","des" : "一对一"}]}}) -- 嵌入式加入 (语句意思: 如果原文档中不存在addrs字段，那么新增该字段，并添加对应的内容)
+结果: 
+{
+    "_id" : ObjectId("5b751b83a802d62b60ebcb1f"),
+    "name" : "zxy",
+    "age" : 18.0,
+    "sex" : "女",
+    "addrs" : [ 
+        {
+            "_id" : ObjectId("5b751a2fa802d62b60ebcb1e"),
+            "addr" : "广州",
+            "city" : "深圳",
+            "des" : "一对一"
+        }
+    ]
+}
+一对多:(引用式)
+db.addrs.insert({"addr":"湖南","addr":"衡阳","des":"引入式一对多"}); --  添加地址表中数据
+db.person.update({'_id':ObjectId("5b751b83a802d62b60ebcb1f")},{$set:{'addr':[ObjectId("5b751a2fa802d62b60ebcb1e"),ObjectId("5b75210ea802d62b60ebcb20")]}}) -- 引用式加入(ObjectId: 第一个是用户表某数据的_id,二三个是地址表要中引用的数据_id)
+结果:
+{
+    "_id" : ObjectId("5b751b83a802d62b60ebcb1f"),
+    "name" : "zxy",
+    "age" : 18.0,
+    "sex" : "女",
+    "addrs" : [ 
+        {
+            "_id" : ObjectId("5b751a2fa802d62b60ebcb1e"),
+            "addr" : "广州",
+            "city" : "深圳",
+            "des" : "一对一"
+        }
+    ],
+    "addr" : [ 
+        ObjectId("5b751a2fa802d62b60ebcb1e"), 
+        ObjectId("5b75210ea802d62b60ebcb20")
+    ]
+}
+一对一: 一个用户中引用一个地址
+一对多: 一个用户中引用地址集合
+多对一: 多个用户中引用同一个地址
+多对多: 多个用户中引用地址集合 (推荐使用'引用式',因为在使用的时候才会用)
+    user{role[角色唯一标识(可以使用ObjectId,或者角色表中有一个唯一值使用)],ObjecId(用户的唯一标识)}
+    role{ObjectId(标识),user[ObjectId]}
+    测试:用户查询到角色,再从角色查询到用户
+
+引用式与嵌入式比较:(引用式优点)
+当用户文档中，存在大量的订单文档时，如果选用直接嵌入方式嵌入订单，那么Mongodb检索引擎会一次性检索所有的订单数据，性能大大降低；反之，使用引用的方式，数据库引擎需要两次检索，第一次检索用户文档中的ObjectId，然后第二次则通过这些ObjectId检索对应的订单信息，索然检索两次，但效率相比于前者大大提高了，实际使用时推荐引用方式建立关系;
+覆盖索引查询:
+db.person.ensureIndex({name:1,sex:1}) -- 创建联合索引(使用name与sex字段)
+db.person.find({name:"zxy"},{sex:1,_id:0}) -- 查询(此查询会被索引给覆盖(意为:显示索引))
+{
+    "sex" : "女"
+}
+对于上述查询，MongoDB的不会去数据库文件中查找。相反，它会从索引中提取数据，这是非常快速的数据查询.
+由于我们的索引中不包括 _id 字段, _id在查询中会默认返回, 我们可以在MongoDB的查询结果集中排除它
+
+db.person.find({name:"zxy"},{sex:1}) -- 没有排除_id，查询不会被索引覆盖
+{
+    "_id" : ObjectId("5b751b83a802d62b60ebcb1f"),
+    "sex" : "女"
+}
+注意: 如果 '所有字段是一个数组或是一个子文档', 那么不能使用覆盖索查询
+查询分析: (类似信息)
+常用函数: explain() 和 hint()
+1) 创建索引: db.person.ensureIndex({name:1,sex:1})
+2) 使用explai()函数: db.person.find({name:"zxy"},{sex:1,_id:0}).explain() ,将会返回一大串结果集,其中indexBounds表示当前查询具体使用的索引
+原子操作:
+学习网址: https://docs.mongodb.com/manual/reference/operator/update/
+$set : 用来指定一个键并更新键值，若键不存在并创建
+  eg: db.person.update({"age":18},{$set:{"name":"dddd"}})
+$unset : 用来删除一个键
+  eg: db.person.update({"age":18},{$unset:{"addrs":""}})  -- 删除掉符合条件age为18文档中的addrs字段
+$inc: 可以对文档的某个值为数字型（只能为满足要求的数字）的键进行增减的操作
+  eg: db.person.update({"age":18},{$inc:{"age":-2}}) -- 将age字段-2
+$push: { $push : { field : value } }
+把value追加到field里面去，field一定要是数组类型才行，如果field不存在，会新增一个数组类型加进去
+  eg: db.person.update({"age":16},{$push:{"addr":"pushTest"}}) -- addr 是一个数组字段
+$pushAll: 可以追加多个值到一个数组字段内
+  eg:  db.person.update({"age":16},{$pushAll:{"addr":["more","last"]}})
+         db.person.update({"age":16},{$pushAll:{"addr":[{"aa":"money","bb":"ending"}]}})
+$pull: 从数组field内删除一个等于value值
+  eg: db.person.update({"age":16},{$pull:{"addr":"saaa"}}) -- 从addr数组中删除等于'saaa'的值
+$addToSet: 增加一个值到数组内，而且只有当这个值不在数组内才增加
+  eg: db.person.update({"age":16},{$addToSet:{"addr":["search","document"]}}) -- 将数组附加到addr字段
+$pop: 删除数组的第一个或最后一个元素
+ eg: db.person.update({"age":16},{$pop:{"addr":1}}) -- 1删除数组最后一个元素,-1删除数组第一个元素
+$rename: 修改字段名称
+  eg: db.person.update({"age":16},{$rename:{"addr":"addrs"}}) -- 将addr 修改成 addrs
+$bit: 位操作, integer类型
+eg: db.student.update({"age":18},{$bit:{"addr":{and:2}}}) -- 2需是Int类型,否则报错(目前未找到解决方法----2018*8*17)
+索引数组字段:
+  创建数组索引 : db.addrs.ensureIndex({"addr":1})
+  检索集合的 addr 字段: db.addrs.find({addr:"广州"}) -- '广州'是你的值,必须正确,否则查询检索不到
+  验证是否使用了检索 : db.addrs.find({addr:"广州"}).explain() -- 结果中"indexName" : "addr_1" 说明检索名是addr_1,则表示已经使用了索引
+索引子文档字段
+  db.person.ensureIndex({"addr.aa":1,"addr.bb":2})
+  db.person.find({"addr.aa":"money"}) -- 使用子文档的字段来检索数据 (addr: 表中数组字段, aa:数组中的key,  money: value)
+  查询表达不一定遵循指定的索引的顺序，mongodb 会自动优化。所以上面创建的索引将支持以下查询: 
+  db.person.find({"addr.aa":"money","addr.bb":"ending"})
+MongoDB 索引限制
+  http://www.runoob.com/mongodb/mongodb-indexing-limitations.html
+ObjectId
+  newObjectId = ObjectId() -- 新建ObjectId
+  myObjectId = ObjectId("5b7566322c5215f0f843bb3b") -- 使用生成的id来取代MongoDB自动生成的ObjectId
+  ObjectId("5b751a2fa802d62b60ebcb1e").getTimestamp() -- 创建文档的时间戳(获取文档的创建时间)
+  new ObjectId().str -- 将ObjectId转换为字符串格式
+Map Reduce --------------------------??
+  
+
+MongoDB 全文检索
+  db.zxyRobo.insert({"name":"zxy","age":18,"des":"仓库里jeog","role":[{"aa":"安安"},{"bb":"不不"},{"cc":"常常"}]}) -- 建立集合
+  db.zxyRobo.ensureIndex({name:"text"}) -- 创建索引(对name字段建立全文索引,这样可搜全文内容)
+  db.zxyRobo.find({$text:{$search:"安安"}}) 或者 db.zxyRobo.runCommand("text",{search:"zxy"}) -- 搜索  text:建立的索引名,zxy:表中值
+  db.zxyRobo.getIndexes() -- 获取索引
+  db.zxyRobo.dropIndex("post_text_text") -- 删除索引
+  db.zxyRobo.update({"_id":ObjectId("5b7639243231ecc5b529c593")},{$addToSet:{"role":["search","document"]}})
+MongoDB正则表达式
+查询:
+  db.zxyRobo.find({name:/zxy/})
+  db.zxyRobo.find({name:{$regex:"zxy"}})
+不区分大小写: 
+  db.zxyRobo.find({name:{$regex:"ZXy",$options:"$i"}})
+数组元素: 
+  db.zxyRobo.update({"_id":ObjectId("5b7639243231ecc5b529c593")},{$addToSet:{"role":"searchIndeKK"}}) -- 结构:数组后有单独的而不是在括号内
+  db.zxyRobo.find({role:{$regex:"se"}}) -- 只能查找到数组后单独值而不是在括号中的值
+优化正则表达式查询
+  eval: 3.0 版本已弃用
+
+MongoDB GridFS ---??
+  参考网址: http://www.runoob.com/mongodb/mongodb-gridfs.html
+
+    db.fiColl.insert({ -- files
+       "filename": "test.txt",
+       "chunkSize": NumberInt(261120),
+       "uploadDate": ISODate("2014-04-13T11:32:33.557Z"),
+       "md5": "7b762939321e146569b07f72c62cca4f",
+       "length": NumberInt(646)
+    })
+
+  db.chuColl.insert({ -- chunc
+       "files_id": ObjectId("534a75d19f54bfec8a2fe44b"),
+       "n": NumberInt(0),
+       "data": "Mongo Binary Data"
+  })
+MongoDB 固定集合
+    db.createCollection("gdColl",{capped:true,size:10000}) -- 创建固定集合,capped:等于 true
+    db.createCollection("gdColl",{capped:true,size:10000,max:1000}) -- 加上 max属性:最大值
+    db.gdColl.isCapped() -- 判断是否为固定集合: true false
+    db.runCommand({"convertToCapped":"posts",size:10000}) -- 将存在的集合转成固定集合 (posts:需转的集合名)
+  依次插入以下值:
+    db.gdColl.insert({"name":"aa"},{"age":"123"})
+    db.gdColl.insert({"name":"bb"},{"age":"465"})
+    db.gdColl.insert({"name":"cc"},{"age":"789"})
+  进行普通查询: aa bb cc
+    db.gdColl.find()
+  固定集合查询: cc bb aa
+    db.gdColl.find().sort({$natural:-1})
+MongoDB 自动增长
+  学习网址: https://blog.csdn.net/gb4215287/article/details/78638924
+  db.ids.save({name:"user", id:0}); -- 创建一个自增长的集合ids
+  db.ids.find(); -- 查看是否创建成功
+  userid = db.ids.findAndModify({update:{$inc:{'id':1}}, query:{"name":"user"}, new:true});
+  db.user.save({uid:userid.id, username:"dotcoo", password:"dotcoo", info:"http://www.dotcoo.com/"});
+  上边两行结合成一步:
+  db.user.save({
+    uid: db.ids  .findAndModify({
+        update:{$inc:{'id':1}},
+        query:{"name":"user"},
+        new:true}).id,  //让db.ids集合中的name="user"文档的id值加1并返回充当自增id
+    username: "dotcoo",
+    password:"dotcoo",
+    info:"http://www.dotcoo.com/"});
+    查询结果: db.user.find(); -- 如果只插入了一条值那么会显示 1.0 再次插入显示2.0
+ 
+副本集从节点默认情况下不能读取，但可以设置此选项: db.getMongo().setSlaveOk(); 
+这样，读取部分可以使用这些开启了读取选项的从节点，从而减轻主节点的负荷。
+至于写入，永远只有主节点才可以进行
+
+启动报错: child process failed, exited with error number 100
+https://blog.csdn.net/moonhmilyms/article/details/23746427
+48  错误: https://www.cnblogs.com/joshua317/articles/5190385.html 
+1) 查看数据是否删完,没有就将其删完(dbpath 目录下)
+2) 查看是否启动了多次(ps -ef|grep mongo)
+
+
+

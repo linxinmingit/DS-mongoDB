@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-2.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-5.0.7.xsd">
+
+	<context:component-scan base-package="com.yr" />
+	<!-- 获取配置资源 -->
+	<context:property-placeholder location="classpath:mongodb.properties" />
+
+	<!-- 集群 -->
+	<!-- 学习网址:https://www.cnblogs.com/fuchuanzhipan1209/p/6149688.html -->
+	<mongo:mongo-client id="mongo" replica-set="${mongo.replicaSet}"/>
+	<!-- <mongo:mongo  id="mongo"  replica-set="${mongodb.replicaSet}" /> spring4 版本的配置-->
+	<!-- 设置使用的数据库名 -->
+	<mongo:db-factory dbname="zxy" mongo-ref="mongo"/>
+
+	
+	<!-- mongodb的模板 -->
+	<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+		<constructor-arg name="mongoDbFactory" ref="mongoDbFactory" />
+	</bean>
+	
+</beans>
